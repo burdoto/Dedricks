@@ -21,14 +21,7 @@ public class KeyEvents implements KeyListener {
 
         if (motion == null) {
             // no valid motion
-        } else {
-            // valid motion
-            if (game.currentElement.canMove(motion)) game.nextMotion = motion;
-            else {
-                game.drop();
-                game.nextMotion = motion;
-            }
-        }
+        } else game.input(motion);
     }
 
     @Override

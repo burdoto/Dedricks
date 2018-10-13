@@ -7,6 +7,7 @@ public enum Motion implements Function<Point, Point> {
     DOWN('s', p -> new Point(p.x, p.y+1)),
     LEFT('a', p -> new Point(p.x-1, p.y)),
     RIGHT('d', p -> new Point(p.x+1, p.y)),
+    FULL_DOWN('x'),
     ROTATE_LEFT('q'),
     ROTATE_RIGHT('e');
 
