@@ -1,5 +1,6 @@
 package de.kaleidox.dedricks.part;
 
+import de.kaleidox.dedricks.Block;
 import de.kaleidox.dedricks.Board;
 import de.kaleidox.dedricks.Game;
 import de.kaleidox.dedricks.Motion;
@@ -13,7 +14,7 @@ public abstract class Piece {
     protected final int startX;
     protected final Color color;
     protected final int[] tiltY;
-    protected Button[] blocks;
+    protected Block[] blocks;
     protected Point origin;
     protected int tilt = 0;
     private Game game;
@@ -27,17 +28,11 @@ public abstract class Piece {
         this.tiltY = tiltY;
     }
 
-    static Button[] getBlocks(Board board, final Point[] points, int x, int y) {
-        Button[] block = new Button[points.length];
+    static Block[] getBlocks(Board board, final Point[] points, int x, int y) {
+        Block[] block = new Block[points.length];
         for (int i = 0; i < points.length; i++)
             block[i] = board.blockByPos(x + points[i].x, y + points[i].y);
         return block;
-    }
-
-    static Point getPoint(final Button button) {
-        String split = Board.NAME_PATTERN.replace("%s", "");
-        String[] coor = button.getName().split(split);
-        return new Point(Integer.parseInt(coor[0]), Integer.parseInt(coor[1]));
     }
 
     static Point applyPoint(Point p, Point o) {
@@ -80,11 +75,11 @@ public abstract class Piece {
         Point[][] point = getBaseArray(type);
         tilt = tilt % 4; // ensure the tilt is not bigger than 4
         if (tilt != 0) y += tiltY[tilt];
-        Button[] blocks = getBlocks(board, point[tilt], x, y);
-        for (Button block : blocks) {
-            if (block.getBackground().getRGB() != Color.LIGHT_GRAY.getRGB()) return false;
-            block.setBackground(color);
-            block.setLabel(type+"");
+        Block[] blocks = getBlocks(board, point[tilt], x, y);
+        for (Block block : blocks) {
+            if (block.button.getBackground().getRGB() != Color.LIGHT_GRAY.getRGB()) return false;
+            block.button.setBackground(color);
+            block.button.setLabel(type+"");
         }
         this.blocks = blocks;
         origin = new Point(x, y);
@@ -95,13 +90,13 @@ public abstract class Piece {
         Point[][] point = getBaseArray(type);
         Point[][] ps = new Point[2][4];
         for (int i = 0; i < blocks.length; i++)
-            ps[0][i] = getPoint(blocks[i]);
+            ps[0][i] = blocks[i].point;
         switch (motion) {
             case DOWN:
             case LEFT:
             case RIGHT:
                 Point[] block = new Point[blocks.length];
-                for (int i = 0; i < blocks.length; i++) block[i] = motion.apply(getPoint(blocks[i]));
+                for (int i = 0; i < blocks.length; i++) block[i] = motion.apply(blocks[i].point);
                 ps[1] = block;
                 return ps;
             case ROTATE_LEFT:
@@ -122,16 +117,16 @@ public abstract class Piece {
     public void move(Motion motion) {
         Point[][] points = simulateMove(motion);
         for (Point point : points[0]) {
-            Button btn = board.blockByPos(point);
+            Button btn = board.blockByPos(point).button;
             btn.setBackground(Color.LIGHT_GRAY);
             btn.setLabel("");
         }
-        blocks = new Button[4];
+        blocks = new Block[4];
         int i = 0;
         for (Point point : points[1]) {
-            Button btn = board.blockByPos(point);
-            btn.setBackground(color);
-            btn.setLabel(type+"");
+            Block btn = board.blockByPos(point);
+            btn.button.setBackground(color);
+            btn.button.setLabel(type+"");
             blocks[i++] = btn;
         }
     }
@@ -139,11 +134,11 @@ public abstract class Piece {
     public boolean canMove(Motion motion) {
         Point[] affected = simulateMove(motion)[1];
         for (Point point : affected) {
-            Button btn = board.blockByPos(point);
-            if (btn.getBackground().getRGB() == Color.BLACK.getRGB()) return false;
-            if (btn.getBackground().getRGB() != Color.LIGHT_GRAY.getRGB()) {
+            Block blk = board.blockByPos(point);
+            if (blk.button.getBackground().getRGB() == Color.BLACK.getRGB()) return false;
+            if (blk.button.getBackground().getRGB() != Color.LIGHT_GRAY.getRGB()) {
                 boolean own = false;
-                for (Button block : blocks) if (btn.getName().equals(block.getName())) own = true;
+                for (Block block : blocks) if (blk.button.getName().equals(block.button.getName())) own = true;
                 if (!own) return false;
             }
         }
